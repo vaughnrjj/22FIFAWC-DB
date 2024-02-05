@@ -1,0 +1,98 @@
+---- Tables
+
+-- Country
+SELECT *
+FROM Country;
+
+-- Stadium
+SELECT *
+FROM Stadium;
+
+-- Player
+SELECT *
+FROM Player;
+
+-- Match
+SELECT *
+FROM [Match];
+
+-- Goal
+SELECT *
+FROM Goal;
+
+
+---- Queries
+
+
+--- Entities:
+
+-- Country
+/* Aggregate query using COUNT()
+   count number of countries in each group */
+SELECT [group], COUNT([group]) AS n_countries
+FROM Country
+GROUP BY [group];
+
+-- Stadium
+/* Aggregate query using AVG(), MIN(), MAX()
+   finding average, minimum, and maximum stadium capacity */
+SELECT AVG(capacity) AS avg_capacity, MIN(capacity) AS min_capacity, MAX(capacity) AS max_capacity
+FROM Stadium;
+
+-- Player
+/* Aggregate query using COUNT()
+   how many players does each country have for each position */
+SELECT country_name, position, COUNT(position) AS n_players
+FROM Player
+GROUP BY country_name, position
+ORDER BY country_name;
+
+-- Match
+/* Aggregate query using COUNT() and SUM()
+   number of games and goals scored for each match type */
+SELECT match_type_name, COUNT(match_type_name) AS n_games, SUM(goals_country1 + goals_country2) AS goals_scored
+FROM [Match]
+GROUP BY match_type_name;
+
+-- Goal
+/* Aggregate query using COUNT()
+   count of normal goals and own goals */
+SELECT own_goal, COUNT(own_goal) AS [count]
+FROM Goal
+GROUP BY own_goal;
+
+--- Relationships:
+
+-- Hosts (Stadium-Match)
+/* Joining Match and Stadium to include capacity from Stadium in Match */
+SELECT m.*, s.capacity
+FROM [Match] m 
+FULL JOIN Stadium s ON m.stadium_name = s.stadium_name;
+
+-- Play In (Country-Match)
+/* Join Country and Match to get the managers for both countries playing */
+SELECT m.*, c.manager AS country1_manager, ce.manager AS country2_manager
+FROM [Match] m 
+RIGHT JOIN Country c ON m.country1 = c.country_name
+RIGHT JOIN Country ce ON m.country2 = ce.country_name
+ORDER BY m.match_id;
+
+-- Plays For (Player-Country)
+/* Join Player and Country to show each players manager */
+SELECT p.*, c.manager
+FROM Player p
+RIGHT JOIN Country c ON p.country_name = c.country_name;
+
+-- Scores (Player-Goal)
+/* Join Player and Goal to show the name of player who scored the goal */
+SELECT g.*, p.player_name
+FROM Goal g
+LEFT JOIN Player p ON g.player_id = p.player_id
+ORDER BY g.goal_id;
+
+-- Scored In (Goal-Match)
+/* Join Goal and Match to show the two countries playing for the goal scored */
+SELECT g.*, m.country1, m.country2
+FROM Goal g
+LEFT JOIN [Match] m ON g.match_id = m.match_id;
+
